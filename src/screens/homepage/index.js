@@ -15,22 +15,131 @@ import {
   View,
   Modal,
   ScrollView,
+  RefreshControl,
 } from 'react-native';
 import {Accordion} from '../../components/accordion';
+import {useSelector} from 'react-redux';
 
 import {styles} from './styles';
 
-function Homepage() {
-  const [expanded, setExpanded] = useState(false);
-  const [categories, setCategories] = useState([]);
-  const [modalText, setModalText] = useState('');
+const ChildrenAccordion = ({
+  title,
+  handleChildPress,
+  fetchJokes,
+  allJokes,
+  addJokes,
+}) => {
+  const [amount, setAmount] = useState(2);
+  const [count, setCount] = useState(0);
+  const [children, setChildren] = useState([]);
 
   useEffect(() => {
-    fetch('https://v2.jokeapi.dev/categories')
-      .then(response => response.json())
-      .then(data => setCategories(data.categories))
-      .catch(error => console.error(error));
+    const filterJokes = allJokes.filter(val => val.category == title);
+    console.log(allJokes)
+    setChildren(filterJokes[0].jokes);
+   
+  }, [allJokes]);
+
+  const addMoreData = () => {
+    setAmount(amount + 1);
+    setCount(count + 1);
+
+    addJokes(title, amount + 1);
+  };
+
+  return (
+    <View style={styles.childrenContainer}>
+      {children &&
+        children?.length !== 0 &&
+        children?.map((item, index, array) => {
+          return (
+            <React.Fragment key={index}>
+              <TouchableOpacity
+                onPress={() => handleChildPress(item.joke)}
+                style={styles.childButton}>
+                <View style={styles.card}>
+                  <Text style={styles.cardText}>{item.joke}</Text>
+                </View>
+              </TouchableOpacity>
+              {array.length - 1 == index && count < 3 && (
+                <TouchableOpacity
+                  onPress={() => {
+                    addMoreData();
+                  }}
+                  style={[styles.card, styles.addButton]}>
+                  <Text style={[styles.cardText]}>Add More Data</Text>
+                </TouchableOpacity>
+              )}
+            </React.Fragment>
+          );
+        })}
+    </View>
+  );
+};
+
+function Homepage() {
+  const [categories, setCategories] = useState([]);
+  const [modalText, setModalText] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
+  const [allJokes, setAllJokes] = useState([]);
+
+  //ketika componentMounting
+  useEffect(() => {
+    fetchCategories();
   }, []);
+
+  useEffect(() => {
+    fetchAllJokes();
+  }, [categories]);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchCategories();
+    setRefreshing(false);
+  };
+
+  const fetchAllJokes = async () => {
+    const fetchedJokes = await Promise.all(
+      categories.map(async category => {
+        const jokes = await fetchJokes(category, 2);
+        return {category, jokes};
+      }),
+    );
+    await setAllJokes(fetchedJokes);
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch('https://v2.jokeapi.dev/categories');
+      const data = await response.json();
+      await setCategories(data.categories);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const fetchJokes = async (title, amount) => {
+    try {
+      const response = await fetch(
+        `https://v2.jokeapi.dev/joke/${title}?type=single&amount=${amount}`,
+      );
+      const data = await response.json();
+      return data.jokes;
+    } catch (error) {
+      return null;
+    }
+  };
+
+  const addJokes = async (title, amount) => {
+    //pertama cari dulu urutan array dengan kategori spesifik;
+    const index = allJokes.findIndex(obj => obj.category === title);
+    //dapetin jokes dengan upgraded amount
+    const jokes = await fetchJokes(title, amount);
+
+    const newArr = [...allJokes];
+    newArr.splice(index, 1, {category: title, jokes});
+    await setAllJokes(newArr);
+  };
 
   function arrayFirstSwap(value) {
     //Cari di arraynya index ke berapa kategori yang diteken
@@ -56,13 +165,25 @@ function Homepage() {
 
   return (
     <SafeAreaView style={{flex: 1}}>
-      <ScrollView>
+      <ScrollView
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }>
         <View style={styles.containerAccordion}>
           {categories &&
             categories.map((val, index) => {
               return (
                 <>
                   <Accordion
+                    childrenComponent={
+                      <ChildrenAccordion
+                        handleChildPress={handleChildPress}
+                        title={val}
+                        fetchJokes={fetchJokes}
+                        allJokes={allJokes}
+                        addJokes={addJokes}
+                      />
+                    }
                     key={val}
                     index={index}
                     title={val}
