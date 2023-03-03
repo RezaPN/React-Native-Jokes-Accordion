@@ -16,108 +16,10 @@ import {
   Modal,
   ScrollView,
 } from 'react-native';
-import { Dimensions } from 'react-native';
-import { styles } from './styles';
+import {Accordion} from '../../components/accordion';
 
-const ChildrenAccordion = ({handleChildPress, addMoreData, children}) => {
-  return (
-    <View style={styles.childrenContainer}>
-      {children &&
-        children?.length !== 0 &&
-        children.map((item, index, array) => {
-          return (
-            <React.Fragment key={index}>
-              <TouchableOpacity
-                onPress={() => handleChildPress(item.joke)}
-                style={styles.childButton}>
-                <View style={styles.card}>
-                  <Text style={styles.cardText}>{item.joke}</Text>
-                </View>
-              </TouchableOpacity>
-              {array.length - 1 == index && (
-                <TouchableOpacity
-                  onPress={() => {
-                    addMoreData();
-                  }}
-                  style={[styles.card, styles.addButton]}>
-                  <Text style={[styles.cardText]}>Add More Data</Text>
-                </TouchableOpacity>
-              )}
-            </React.Fragment>
-          );
-        })}
-    </View>
-  );
-};
+import {styles} from './styles';
 
-const Accordion = ({
-  index,
-  title,
-  handleChildPress,
-  arrayFirstSwap,
-  categories,
-}) => {
-  const [expanded, setExpanded] = useState(false);
-  const [amount, setAmount] = useState(2);
-  const [count, setAccount] = useState(0);
-  const [children, setChildren] = useState([]);
-
-  const addMoreData = () => {
-    setAmount(amount + 1);
-    setAccount(count + 1);
-  };
-
-  const toggleAccordion = () => {
-    setExpanded(!expanded);
-  };
-
-  useEffect(() => {
-    fetch(`https://v2.jokeapi.dev/joke/${title}?type=single&amount=${amount}`)
-      .then(response => response.json())
-      .then(data => {
-        setChildren(data.jokes);
-      })
-      .catch(error => console.error(error));
-  }, [amount]);
-
-  return (
-    <View style={styles.container}>
-      <TouchableOpacity style={styles.header} onPress={toggleAccordion}>
-        <Text style={styles.headerText}>{title}</Text>
-        <View
-          style={{
-            marginRight: 20,
-            width: 100,
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}>
-          <TouchableOpacity
-            onPress={() => {
-              arrayFirstSwap(title);
-            }}
-            style={{
-              borderWidth: 1,
-              borderRadius: 5,
-              padding: 5,
-              backgroundColor: index == 0 ? '#C8FEFC' : '#FF979B',
-            }}>
-            <Text>{index == 0 ? 'Top' : 'Go Top'}</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.arrowContainer}>
-          <Text style={styles.arrow}>{expanded ? '-' : '+'}</Text>
-        </View>
-      </TouchableOpacity>
-      {expanded && (
-        <ChildrenAccordion
-          handleChildPress={handleChildPress}
-          addMoreData={addMoreData}
-          children={children}
-        />
-      )}
-    </View>
-  );
-};
 function Homepage() {
   const [expanded, setExpanded] = useState(false);
   const [categories, setCategories] = useState([]);
@@ -190,8 +92,5 @@ function Homepage() {
     </SafeAreaView>
   );
 }
-
-
-
 
 export default Homepage;
