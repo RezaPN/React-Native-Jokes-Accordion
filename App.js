@@ -8,16 +8,8 @@
 import React, {useState, useEffect} from 'react';
 import Homepage from './src/screens/homepage';
 
-
-import {Provider} from 'react-redux';
-import store from './src/store/store';
-
 function App() {
-  return (
-    <Provider store={store}>
-      <Homepage />
-    </Provider>
-  );
+  return <Homepage />;
 }
 
 export default App;

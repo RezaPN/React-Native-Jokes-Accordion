@@ -7,10 +7,8 @@
 
 import React, {useState, useEffect} from 'react';
 import {
-  FlatList,
   SafeAreaView,
   TouchableOpacity,
-  StyleSheet,
   Text,
   View,
   Modal,
@@ -18,33 +16,20 @@ import {
   RefreshControl,
 } from 'react-native';
 import {Accordion} from '../../components/accordion';
-import {useSelector} from 'react-redux';
 
 import {styles} from './styles';
 
-const ChildrenAccordion = ({
-  title,
-  handleChildPress,
-  fetchJokes,
-  allJokes,
-  addJokes,
-}) => {
-  const [amount, setAmount] = useState(2);
-  const [count, setCount] = useState(0);
+const ChildrenAccordion = ({title, handleChildPress, allJokes, addJokes}) => {
   const [children, setChildren] = useState([]);
 
   useEffect(() => {
     const filterJokes = allJokes.filter(val => val.category == title);
-    console.log(allJokes)
+    console.log(allJokes);
     setChildren(filterJokes[0].jokes);
-   
   }, [allJokes]);
 
   const addMoreData = () => {
-    setAmount(amount + 1);
-    setCount(count + 1);
-
-    addJokes(title, amount + 1);
+    addJokes(title, children.length + 1);
   };
 
   return (
@@ -61,7 +46,7 @@ const ChildrenAccordion = ({
                   <Text style={styles.cardText}>{item.joke}</Text>
                 </View>
               </TouchableOpacity>
-              {array.length - 1 == index && count < 3 && (
+              {array.length - 1 == index && array.length < 4 && (
                 <TouchableOpacity
                   onPress={() => {
                     addMoreData();
@@ -79,6 +64,7 @@ const ChildrenAccordion = ({
 
 function Homepage() {
   const [categories, setCategories] = useState([]);
+  const [firstFetch, setFirstFetch] = useState(false);
   const [modalText, setModalText] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [allJokes, setAllJokes] = useState([]);
@@ -90,7 +76,7 @@ function Homepage() {
 
   useEffect(() => {
     fetchAllJokes();
-  }, [categories]);
+  }, [firstFetch]);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -113,6 +99,7 @@ function Homepage() {
       const response = await fetch('https://v2.jokeapi.dev/categories');
       const data = await response.json();
       await setCategories(data.categories);
+      await setFirstFetch(!firstFetch); //mendandakan firstFetch categories terjadi
     } catch (error) {
       console.error(error);
     }
@@ -179,7 +166,6 @@ function Homepage() {
                       <ChildrenAccordion
                         handleChildPress={handleChildPress}
                         title={val}
-                        fetchJokes={fetchJokes}
                         allJokes={allJokes}
                         addJokes={addJokes}
                       />
