@@ -15,52 +15,9 @@ import {
   ScrollView,
   RefreshControl,
 } from 'react-native';
-import {Accordion} from '../../components/accordion';
+import {Accordion, ChildrenAccordion} from '../../components/accordion';
 
 import {styles} from './styles';
-
-const ChildrenAccordion = ({title, handleChildPress, allJokes, addJokes}) => {
-  const [children, setChildren] = useState([]);
-
-  useEffect(() => {
-    const filterJokes = allJokes.filter(val => val.category == title);
-    console.log(allJokes);
-    setChildren(filterJokes[0].jokes);
-  }, [allJokes]);
-
-  const addMoreData = () => {
-    addJokes(title, children.length + 1);
-  };
-
-  return (
-    <View style={styles.childrenContainer}>
-      {children &&
-        children?.length !== 0 &&
-        children?.map((item, index, array) => {
-          return (
-            <React.Fragment key={index}>
-              <TouchableOpacity
-                onPress={() => handleChildPress(item.joke)}
-                style={styles.childButton}>
-                <View style={styles.card}>
-                  <Text style={styles.cardText}>{item.joke}</Text>
-                </View>
-              </TouchableOpacity>
-              {array.length - 1 == index && array.length < 4 && (
-                <TouchableOpacity
-                  onPress={() => {
-                    addMoreData();
-                  }}
-                  style={[styles.card, styles.addButton]}>
-                  <Text style={[styles.cardText]}>Add More Data</Text>
-                </TouchableOpacity>
-              )}
-            </React.Fragment>
-          );
-        })}
-    </View>
-  );
-};
 
 function Homepage() {
   const [categories, setCategories] = useState([]);
@@ -74,16 +31,19 @@ function Homepage() {
     fetchCategories();
   }, []);
 
+  //after kategori didapatkan
   useEffect(() => {
     fetchAllJokes();
   }, [firstFetch]);
 
+  //onRefresh ketika layar digeser kebawah
   const onRefresh = () => {
     setRefreshing(true);
     fetchCategories();
     setRefreshing(false);
   };
 
+  //jokes yang didapat dari kategori langsung difetch semua
   const fetchAllJokes = async () => {
     const fetchedJokes = await Promise.all(
       categories.map(async category => {
@@ -94,6 +54,7 @@ function Homepage() {
     await setAllJokes(fetchedJokes);
   };
 
+  //fetch karegori
   const fetchCategories = async () => {
     try {
       const response = await fetch('https://v2.jokeapi.dev/categories');
@@ -105,6 +66,7 @@ function Homepage() {
     }
   };
 
+  //fetch jokes
   const fetchJokes = async (title, amount) => {
     try {
       const response = await fetch(
@@ -117,6 +79,7 @@ function Homepage() {
     }
   };
 
+  //adding new jokes dengan proses ngereplace jokes di tergantung indexnya
   const addJokes = async (title, amount) => {
     //pertama cari dulu urutan array dengan kategori spesifik;
     const index = allJokes.findIndex(obj => obj.category === title);

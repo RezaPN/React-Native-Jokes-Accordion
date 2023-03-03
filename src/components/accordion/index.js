@@ -1,17 +1,63 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   TouchableOpacity,
-  StyleSheet,
   Text,
   View,
-  Dimensions,
 } from 'react-native';
+import { styles } from './styles';
+
+
+export const ChildrenAccordion = ({
+  title,
+  handleChildPress,
+  allJokes,
+  addJokes,
+}) => {
+  const [children, setChildren] = useState([]);
+
+  useEffect(() => {
+    const filterJokes = allJokes.filter(val => val.category == title);
+    setChildren(filterJokes[0].jokes);
+  }, [allJokes]);
+
+  const addMoreData = () => {
+    addJokes(title, children.length + 2);
+  };
+
+  return (
+    <View style={styles.childrenContainer}>
+      {children &&
+        children?.length !== 0 &&
+        children?.map((item, index, array) => {
+          return (
+            <React.Fragment key={index}>
+              <TouchableOpacity
+                onPress={() => handleChildPress(item.joke)}
+                style={styles.childButton}>
+                <View style={styles.card}>
+                  <Text style={styles.cardText}>{item.joke}</Text>
+                </View>
+              </TouchableOpacity>
+              {array.length - 1 == index && array.length < 6 && (
+                <TouchableOpacity
+                  onPress={() => {
+                    addMoreData();
+                  }}
+                  style={[styles.card, styles.addButton]}>
+                  <Text style={[styles.cardText]}>Add More Data</Text>
+                </TouchableOpacity>
+              )}
+            </React.Fragment>
+          );
+        })}
+    </View>
+  );
+};
 
 export const Accordion = ({
   childrenComponent,
   index,
   title,
-  handleChildPress,
   arrayFirstSwap,
 }) => {
   const [expanded, setExpanded] = useState(false);
@@ -23,7 +69,8 @@ export const Accordion = ({
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.header} onPress={toggleAccordion}>
-        <Text style={styles.headerText}>{title}</Text>
+        <Text style={styles.headerNumber}>{index + 1}</Text>
+        <Text adjustsFontSizeToFit numberOfLines={1} style={styles.headerText}>{title}</Text>
         <View
           style={{
             marginRight: 20,
@@ -52,75 +99,4 @@ export const Accordion = ({
     </View>
   );
 };
-const windowWidth = Dimensions.get('window').width;
-const windowHeight = Dimensions.get('window').height;
 
-export const styles = StyleSheet.create({
-  addButton: {
-    backgroundColor: '#CAFFFF',
-    padding: windowWidth * 0.02,
-    alignItems: 'center',
-  },
-  childButton: {
-    flex: 1,
-  },
-  childrenContainer: {
-    backgroundColor: '#FBF8F8',
-    paddingHorizontal: windowWidth * 0.002,
-  },
-  item: {
-    backgroundColor: '#f9c2ff',
-    padding: windowWidth * 0.05,
-    marginVertical: windowHeight * 0.02,
-    marginHorizontal: windowWidth * 0.05,
-  },
-  container: {
-    backgroundColor: '#fff',
-    marginVertical: windowHeight * 0.01,
-    borderRadius: windowWidth * 0.02,
-    overflow: 'hidden',
-  },
-  header: {
-    backgroundColor: '#FFFFFF',
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: windowWidth * 0.05,
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-    shadowOffset: {
-      width: 0,
-      height: windowHeight * 0.01,
-    },
-  },
-  headerText: {
-    fontWeight: 'bold',
-    flex: 1,
-  },
-  content: {
-    padding: windowWidth * 0.03,
-  },
-  arrowContainer: {
-    width: windowWidth * 0.08,
-    height: windowWidth * 0.08,
-    borderRadius: windowWidth * 0.04,
-    backgroundColor: '#ccc',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  arrow: {
-    color: '#fff',
-    fontSize: windowWidth * 0.045,
-    fontWeight: 'bold',
-    bottom: 1,
-  },
-  card: {
-    backgroundColor: 'white',
-    padding: windowWidth * 0.05,
-    marginVertical: windowHeight * 0.001,
-    shadowColor: 'black',
-  },
-  cardText: {
-    fontSize: windowWidth * 0.04,
-  },
-});
